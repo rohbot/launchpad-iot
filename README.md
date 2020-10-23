@@ -1,0 +1,1 @@
+Internet of Things connected Launchpad Mini
