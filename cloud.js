@@ -13,7 +13,6 @@ server.on('listening', () => {
 server.listen('3000')
 const io = require('socket.io')(server);
 
-
 const grid = [
 	[0, 0, 0, 0, 0, 0, 0, 0],
 	[0, 0, 0, 0, 0, 0, 0, 0],
