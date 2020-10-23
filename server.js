@@ -3,7 +3,7 @@ const Launchpad = require( 'launchpad-mini' ),
 
 const http = require('http')
 const express = require('express')
-
+const zmq = require("zeromq")
 const app = express()
 app.use(express.static('public'))
 
@@ -16,6 +16,19 @@ server.on('listening', () => {
 
 server.listen('3000')
 const io = require('socket.io')(server);
+
+const pub = require('socket.io-client')('https://lp.rohbot.cc');
+pub.on('connect', function(){
+	console.log('Connected to https://lp.rohbot.cc')
+});
+pub.on('launchpad:out', function(k){
+	console.log("received",k)
+	keys[k.y][k.x] = k.val;
+	pad.col( keys[k.y][k.x] ? pad.red : pad.off, [[k.x,k.y]]);
+	let msg = { x : k.x, y: k.y, val: keys[k.y][k.x] } 
+	io.emit('launchpad:out', msg); 
+});
+pub.on('disconnect', function(){});
 
 
 const grid =  [ 
@@ -44,7 +57,8 @@ io.sockets.on('connection', (socket) => {
 		keys[k.y][k.x] = !keys[k.y][k.x];
 		pad.col( keys[k.y][k.x] ? pad.red : pad.off, [[k.x,k.y]]);
 		let msg = { x : k.x, y: k.y, val: keys[k.y][k.x] } 
-		io.emit('launchpad:out', msg);  
+		io.emit('launchpad:out', msg); 
+		pub.emi('pressed', msg); 
 	})
 	socket.on('disconnect', () => console.log('Client has disconnected'))
  })
@@ -62,7 +76,8 @@ pad.connect().then( () => {
 			console.log(k.x, k.y, k.pressed, keys[k.y][k.x]); 
 			pad.col( keys[k.y][k.x] ? pad.red : pad.off, k);
 			let msg = { x : k.x, y: k.y, val: keys[k.y][k.x] } 
-			io.emit('launchpad:out', msg);  
+			io.emit('launchpad:out', msg); 
+			pub.emit('pressed', msg); 
 		}
 		
 		if(k.x == 8 && k.y == 7 && k.pressed){
@@ -76,22 +91,3 @@ pad.connect().then( () => {
 } );
 
 
-
-// const mqtt = require('mqtt')
-// const client = mqtt.connect('mqtt://localhost')
-
-// client.on('connect', () => {
-//   console.log('Connected');
-//   // Inform controllers that garage is connected
-//   client.publish('launchpad/connected', 'true');
-//   client.subscribe('launchpad/in');
-  
-// })
-// client.on('message', function(topic, message) {
-// 	msg = message.toString();
-// 	console.log(msg);
-// 	console.log(topic);
-// 	/* switch (topic) {
-// 		case 
-// 	} */
-// });
