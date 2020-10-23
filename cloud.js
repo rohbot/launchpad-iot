@@ -1,6 +1,28 @@
 const http = require('http')
 const express = require('express')
 const app = express()
+const redis     = require('redis');
+const redisPub = redis.createClient();
+const redisSub = redis.createClient();
+
+redisSub.on("connect", function() {
+	console.log('Conneceted to Redis')
+	redisSub.subscribe("launchpad:out");
+});
+
+redisSub.on("message", function(channel, msg) {
+	console.log(channel, msg);
+	try {
+		let k = JSON.parse(msg);
+		console.log('redis-in', k)
+		keys[k.y][k.x] = k.val;
+		io.emit('launchpad:out', k);
+	} catch (error) {
+		console.log(error);
+	}
+
+});
+
 app.use(express.static('public'))
 
 app.set('port', '3000')
@@ -39,7 +61,7 @@ io.sockets.on('connection', (socket) => {
 		keys[k.y][k.x] = !keys[k.y][k.x];
 		let msg = { x: k.x, y: k.y, val: keys[k.y][k.x] }
 		io.emit('launchpad:out', msg);
-		
+		redisPub.publish('pressed', JSON.stringify(msg))
 	})
 	socket.on('disconnect', () => console.log('Client has disconnected'))
 })
