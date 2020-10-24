@@ -3,7 +3,6 @@ const Launchpad = require( 'launchpad-mini' ),
 
 const http = require('http')
 const express = require('express')
-const zmq = require("zeromq")
 const app = express()
 app.use(express.static('public'))
 
@@ -67,7 +66,7 @@ io.sockets.on('connection', (socket) => {
 pad.connect().then( () => {     
     pad.reset(  );            
 		io.emit('launchpad:reset', 'reset');
-
+    pad.col(pad.green,[8,0]);	
 	
     pad.on( 'key', k => {
 		//pad.reset( 2 );
