@@ -36,7 +36,7 @@ Plug the LaunchPad's USB cable into the Raspberry Pi
 ## Software
 The heart of this project lies in the software. As previously mentioned there is a [API](https://github.com/Granjow/launchpad-mini/blob/master/doc/launchpad-programmers-reference.pdf) for the LaunchPad, so many other before me have created various libraries and layers on top of this.
 
-Forntuately the top result when Googling 'Launchpad Library NodeJS' lead me to the ['launchpad-mini](https://github.com/Granjow/launchpad-mini) library so there's no need to mess about at the MIDI API layer.
+Forntuately the top result when Googling 'Launchpad Library NodeJS' lead me to the [launchpad-mini](https://github.com/Granjow/launchpad-mini) library so there's no need to mess about at the MIDI API layer.
 
 ### Setting up Raspberry Pi
 Before we can even think about installing libraries need to get the Raspberry Pi setup first.
@@ -54,12 +54,12 @@ sudo apt install gcc g++ make libasound2-dev
 ```
 #### Clone this repo
 ```
-git clone https://github.com/rohbot/launchpadiot.git
+git clone https://github.com/rohbot/launchpad-iot.git
 ```
 
 #### Install App Dependencies
 ```
-cd launchpadiot
+cd launchpad-iot
 npm install
 ```
 This command will install various libraries/dependencies used in this app including: 
