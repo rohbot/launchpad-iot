@@ -10,7 +10,7 @@ To start with I plan to create a two-way or bi-directional between the LaunchPad
 ## Demo
 ![Demo GIF](public/images/demo.gif)
 
-[Live Demo](http://lp.rohbot.cc)
+[Live Demo](http://launchpad.rohbot.cc)
 
 ## Hardware
 ### Novation LaunchPad Mini MK3
