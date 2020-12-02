@@ -16,22 +16,11 @@ server.on('listening', () => {
 server.listen('3000')
 const io = require('socket.io')(server);
 
-// const pub = require('socket.io-client')('https://lp.rohbot.cc');
-// pub.on('connect', function(){
-// 	console.log('Connected to https://lp.rohbot.cc')
-// });
-// pub.on('launchpad:out', function(k){
-// 	console.log("received",k)
-// 	keys[k.y][k.x] = k.val;
-// 	pad.col( keys[k.y][k.x] ? pad.red : pad.off, [[k.x,k.y]]);
-// 	let msg = { x : k.x, y: k.y, val: keys[k.y][k.x] } 
-// 	io.emit('launchpad:out', msg); 
-// });
-// pub.on('disconnect', function(){});
-
 let board;
 let next;
 let prev;
+let MODE = 'demo';
+
 const rows = 8;
 const columns = 8;
 function setup() {
@@ -64,6 +53,7 @@ function display_grid() {
 	io.emit('launchpad:grid', board)
 	// console.log(board)
 	pad.reset();
+	pad.col(pad.green, [1, 8]);
 	let leds = [];
 	for (let y = 0; y < columns; y++) {
 		for (let x = 0; x < rows; x++) {
@@ -78,8 +68,15 @@ function display_grid() {
 	else  // reset reset if no leds
 		init_grid()
 }
-
+/* 
+ * The game of life functionality was heavily influenced by
+ * P5.js implementation https://p5js.org/examples/simulate-game-of-life.html
+ */
 function check_grid() {
+
+	if (MODE != 'game-of-life') {
+		return
+	}
 	// console.log('checking grid')
 	// Loop through every spot in our 2D array and check spots neighbors
 	for (let x = 1; x < columns - 1; x++) {
@@ -97,8 +94,8 @@ function check_grid() {
 			neighbors -= board[x][y];
 			// Rules of Life
 			if ((board[x][y] == 1) && (neighbors < 2)) next[x][y] = 0;           // Loneliness
-			else if ((board[x][y] == 1) && (neighbors > 3)) next[x][y] = 0;           // Overpopulation
-			else if ((board[x][y] == 0) && (neighbors == 3)) next[x][y] = 1;           // Reproduction
+			else if ((board[x][y] == 1) && (neighbors > 3)) next[x][y] = 0;      // Overpopulation
+			else if ((board[x][y] == 0) && (neighbors == 3)) next[x][y] = 1;     // Reproduction
 			else next[x][y] = board[x][y]; // Stasis
 		}
 	}
@@ -107,13 +104,13 @@ function check_grid() {
 	let same = true;
 	for (let i = 0; i < columns; i++) {
 		for (let j = 0; j < rows; j++) {
-			if(board[i][j] != next[i][j]){
-					same = false;
+			if (board[i][j] != next[i][j]) {
+				same = false;
 			}
 		}
 	}
 
-	if(same){
+	if (same) {
 		init_grid();
 	}
 
@@ -150,7 +147,7 @@ io.sockets.on('connection', (socket) => {
 	socket.on('pressed', (k) => {
 		console.log('pressed', k);
 		key_pressed(k.x, k.y)
-		//pub.emi('pressed', msg); 
+
 	})
 	socket.on('disconnect', () => console.log('Client has disconnected'))
 
@@ -159,67 +156,37 @@ io.sockets.on('connection', (socket) => {
 
 pad.connect().then(() => {
 	pad.reset();
-	display_grid();
-	// io.emit('launchpad:reset', 'reset');
-	pad.col(pad.green, [8, 0]);
 
+	io.emit('launchpad:reset', 'reset');
+
+	pad.col(pad.green, [0, 8]);
 	pad.on('key', k => {
-		//pad.reset( 2 );
 		if (k.pressed) {
 			key_pressed(k.x, k.y)
-			// keys[k.y][k.x] = !keys[k.y][k.x];
-			// console.log(k.x, k.y, k.pressed, keys[k.y][k.x]);
-			// pad.col(keys[k.y][k.x] ? pad.red : pad.off, k);
-			// let msg = { x: k.x, y: k.y, val: keys[k.y][k.x] }
-			// io.emit('launchpad:out', msg);
-			//pub.emit('pressed', msg); 
+
 		}
 
 		if (k.x == 8 && k.y == 7 && k.pressed) {
 			console.log('reset');
 			pad.reset();
-			// io.emit('launchpad:reset', 'reset');
+			io.emit('launchpad:reset', 'reset');
 			init_grid()
-			// board = grid;
-		}
-		if (k.x == 8 && k.y == 7 && k.pressed) {
 
+		}
+		if (k.x == 0 && k.y == 8) {
+			MODE = 'demo';
+			pad.col(pad.green, [0, 8]);
+			pad.col(pad.off, [1, 8]);
+
+		}
+		if (k.x == 1 && k.y == 8) {
+			MODE = 'game-of-life';
+			pad.col(pad.off, [0, 8]);
+			pad.col(pad.green, [1, 8]);
+			// init_grid()
 		}
 
 
 	});
 });
 
-
-
-// function get_neighbours(x, y) {
-// 	let neighbours = 0;
-// 	if (x - 1 >= 0 && y - 1 >= 0 && x - 1 < ROWS && y - 1 < COLS)
-// 		if (keys[x - 1][y - 1])
-// 			neighbours += 1;
-
-// 	if (x >= 0 && y - 1 >= 0 && x < ROWS && y - 1 < COLS)
-// 		if (keys[x][y - 1])
-// 			neighbours += 1;
-// 	if (x + 1 >= 0 && y - 1 >= 0 && x + 1 < ROWS && y - 1 < COLS)
-// 		if (keys[x + 1][y - 1])
-// 			neighbours += 1;
-
-// 	if (x - 1 >= 0 && y >= 0 && x - 1 < ROWS && y < COLS)
-// 		if (keys[x - 1][y])
-// 			neighbours += 1
-// 	if (x + 1 >= 0 && y >= 0 && x + 1 < ROWS && y < COLS)
-// 		if (keys[x + 1][y])
-// 			neighbours += 1
-
-// 	if (x - 1 >= 0 && y + 1 >= 0 && x - 1 < ROWS && y + 1 < COLS)
-// 		if (keys[x - 1][y + 1])
-// 			neighbours += 1
-// 	if (x >= 0 && y + 1 >= 0 && x < ROWS && y + 1 < COLS)
-// 		if (keys[x][y + 1])
-// 			neighbours += 1
-// 	if (x + 1 >= 0 && y + 1 >= 0 && x + 1 < ROWS && y + 1 < COLS)
-// 		if (keys[x + 1][y + 1])
-// 			neighbours += 1
-// 	return neighbours
-// }
