@@ -19,7 +19,7 @@ const io = require('socket.io')(server);
 let board;
 let next;
 let prev;
-let MODE = 'demo';
+let MODE = 'free-draw';
 
 const rows = 8;
 const columns = 8;
@@ -142,6 +142,7 @@ io.sockets.on('connection', (socket) => {
 	socket.on('getGrid', (data) => {
 		console.log('getGrid')
 		io.emit('launchpad:grid', board)
+		io.emit('launchpad:mode', MODE);
 	})
 
 	socket.on('pressed', (k) => {
@@ -174,15 +175,17 @@ pad.connect().then(() => {
 
 		}
 		if (k.x == 0 && k.y == 8) {
-			MODE = 'demo';
+			MODE = 'free-draw';
 			pad.col(pad.green, [0, 8]);
 			pad.col(pad.off, [1, 8]);
+			io.emit('launchpad:mode', MODE);
 
 		}
 		if (k.x == 1 && k.y == 8) {
 			MODE = 'game-of-life';
 			pad.col(pad.off, [0, 8]);
 			pad.col(pad.green, [1, 8]);
+			io.emit('launchpad:mode', MODE);
 			// init_grid()
 		}
 
